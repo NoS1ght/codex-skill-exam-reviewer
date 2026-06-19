@@ -74,8 +74,16 @@ Or via Codex UI: Skills → Install from GitHub → paste the repo URL.
 - ✅ 8-15 questions per chapter (choice + fill-in-blank)
 
 ## File structure
-
-`exam-reviewer/ ├── SKILL.md                    # Main skill instructions ├── agents/ │   └── openai.yaml             # Agent metadata ├── references/ │   ├── html_skeleton.html      # HTML/CSS/JS template │   └── validate_quiz.py        # Post-generation validation └── .gitignore`
+```
+exam-reviewer/
+├── SKILL.md                    # Main skill instructions
+├── agents/
+│   └── openai.yaml             # Agent metadata
+├── references/
+│   ├── html_skeleton.html      # HTML/CSS/JS template
+│   └── validate_quiz.py        # Post-generation validation
+└── .gitignore
+```
 
 ## License
 
