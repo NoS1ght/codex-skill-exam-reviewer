@@ -1,0 +1,3 @@
+interface:
+  display_name: "Exam Reviewer"
+  short_description: "Generate HTML study quiz banks chapter by chapter"

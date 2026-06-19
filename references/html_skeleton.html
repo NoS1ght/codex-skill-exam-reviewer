@@ -1,0 +1,143 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHAPTER_TITLE — 马克思主义基本原理</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif; line-height:1.8; color:#222; background:#f5f5f5; padding:20px; }
+  .container { max-width:900px; margin:0 auto; }
+  h1 { text-align:center; font-size:1.8em; color:#1a237e; margin:20px 0 30px; padding-bottom:12px; border-bottom:3px solid #1a237e; }
+  h2 { font-size:1.4em; color:#283593; margin:30px 0 15px; padding-left:12px; border-left:4px solid #3949ab; }
+  h3 { font-size:1.15em; color:#3949ab; margin:20px 0 10px; }
+  .section { background:#fff; padding:25px 30px; margin-bottom:24px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+  .section ul { padding-left:20px; }
+  .section li { margin:6px 0; }
+  .highlight { background:#e8eaf6; padding:2px 6px; border-radius:3px; font-weight:600; }
+  .key-point { background:#fff3e0; border-left:3px solid #ff9800; padding:8px 14px; margin:10px 0; }
+  table { width:100%; border-collapse:collapse; margin:10px 0; }
+  th { background:#e8eaf6; padding:8px; text-align:left; border:1px solid #c5cae9; }
+  td { padding:8px; border:1px solid #e0e0e0; }
+  tr:nth-child(even) td { background:#fafafa; }
+  .card { background:#fff; border:1px solid #e0e0e0; border-radius:8px; padding:18px 22px; margin:14px 0; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+  .card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:4px; }
+  .q-num { font-weight:700; color:#1a237e; min-width:36px; }
+  .q-text { flex:1; }
+  .q-type { font-size:0.8em; color:#888; background:#f0f0f0; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+  .options { margin:10px 0 0 36px; }
+  .opt { display:block; padding:8px 12px; margin:3px 0; border:1.5px solid #e0e0e0; border-radius:6px; cursor:pointer; transition:all 0.15s; background:#fff; }
+  .opt:hover:not(.selected) { border-color:#7986cb; background:#f5f6ff; }
+  .opt.selected { pointer-events:none; }
+  .opt.correct-opt { border-color:#4caf50!important; background:#e8f5e9!important; }
+  .opt.wrong-opt { border-color:#f44336!important; background:#ffebee!important; }
+  .opt .opt-letter { font-weight:700; color:#3949ab; margin-right:6px; }
+  .opt .opt-icon { float:right; font-size:1.1em; }
+  .reveal-btn { display:inline-block; background:#3949ab; color:#fff; border:none; padding:8px 24px; border-radius:4px; cursor:pointer; font-size:0.95em; margin-top:8px; transition:background 0.2s; }
+  .reveal-btn:hover { background:#283593; }
+  .reveal-btn.done { display:none; }
+  .answer-panel { display:none; margin-top:12px; padding:14px 18px; background:#f3f5f9; border-radius:6px; border-left:3px solid #4caf50; }
+  .answer-panel.show { display:block; }
+  .correct { color:#2e7d32; font-weight:700; }
+  .explanation { margin-top:8px; color:#555; font-size:0.95em; }
+  .mnemonic { background:#e8f5e9; padding:10px 16px; border-radius:6px; margin:10px 0; border:1px dashed #66bb6a; }
+  @media print {
+    body { background:#fff; padding:0; }
+    .section { box-shadow:none; break-inside:avoid; }
+    .answer-panel { display:block!important; }
+    .opt { pointer-events:none; }
+    .reveal-btn { display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>CHAPTER_TITLE</h1>
+<h2 style="text-align:center;color:#666;font-size:1em;border:none;padding:0;margin-top:-20px;">CHAPTER_SUBTITLE</h2>
+
+<!-- ========== SECTION 1: KNOWLEDGE SUMMARY ========== -->
+<div class="section">
+<h2>核心知识点总结</h2>
+
+<h3>一、Topic Header</h3>
+<ul>
+  <li>Bullet point with <span class="highlight">key term</span> highlighted.</li>
+</ul>
+
+<div class="key-point"><b>Key formula or critical note:</b> content here</div>
+
+<div class="mnemonic">
+  <b>记忆口诀：</b><br>
+  ✦ Mnemonic line 1<br>
+  ✦ Mnemonic line 2
+</div>
+</div>
+
+<!-- ========== SECTION 2: QUIZ ========== -->
+<div class="section">
+<h2>互动自测</h2>
+
+<h3 style="color:#e65100;">—— 选择题 ——</h3>
+
+<!-- CHOICE CARD -->
+<div class="card" data-correct="X">
+  <div class="card-header"><span class="q-num">Q1</span><span class="q-text">Question text ( )</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> Option A<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> Option B<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> Option C<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> Option D<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ X</span></div>
+    <div class="explanation"><b>解析：</b>Explanation text.</div>
+  </div>
+</div>
+
+<h3 style="color:#e65100;margin-top:30px;">—— 填空题 ——</h3>
+
+<!-- FILL-IN-BLANK CARD -->
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_1</span><span class="q-text">Question with __________ blanks.</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">Answer text</span></div>
+    <div class="explanation"><b>解析：</b>Explanation.</div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script>
+(function(){
+  document.querySelectorAll('.card').forEach(function(card){
+    var correct = card.getAttribute('data-correct');
+    if (!correct) return;
+    var opts = card.querySelectorAll('.opt');
+    var panel = card.querySelector('.answer-panel');
+    opts.forEach(function(opt){
+      opt.addEventListener('click', function(){
+        if (opt.classList.contains('selected')) return;
+        opts.forEach(function(o){ o.classList.add('selected'); });
+        var letter = opt.getAttribute('data-opt');
+        if (letter === correct) {
+          opt.classList.add('correct-opt');
+          opt.querySelector('.opt-icon').textContent = '\u2713';
+        } else {
+          opt.classList.add('wrong-opt');
+          opt.querySelector('.opt-icon').textContent = '\u2717';
+          var correctOpt = card.querySelector('.opt[data-opt="' + correct + '"]');
+          if (correctOpt) {
+            correctOpt.classList.add('correct-opt');
+            correctOpt.querySelector('.opt-icon').textContent = '\u2713';
+          }
+        }
+        if (panel) panel.classList.add('show');
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

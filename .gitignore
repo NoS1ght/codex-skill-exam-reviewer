@@ -1,0 +1,28 @@
+﻿# Codex Skill: Exam Reviewer
+# Prevent accidental commits of sensitive data
+
+# Secrets / credentials
+.env
+*.key
+*.pem
+*.token
+credentials.*
+secret.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+
+# Generated quiz output (user-specific)
+agentquiz/
+_review_plan.md
