@@ -1,5 +1,3 @@
-﻿# Exam Reviewer — Codex Skill
-
 # Exam Reviewer — Codex Skill
 
 Generate chapter-by-chapter HTML study question banks from subject materials (notes, slides, textbooks, practice exams). Produces self-contained interactive HTML files with knowledge summaries and auto-grading quizzes.
