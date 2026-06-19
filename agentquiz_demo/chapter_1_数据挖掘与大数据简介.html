@@ -1,0 +1,350 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第一章：数据挖掘与大数据简介</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif; line-height:1.8; color:#222; background:#f5f5f5; padding:20px; }
+  .container { max-width:900px; margin:0 auto; }
+  h1 { text-align:center; font-size:1.8em; color:#1a237e; margin:20px 0 30px; padding-bottom:12px; border-bottom:3px solid #1a237e; }
+  h2 { font-size:1.4em; color:#283593; margin:30px 0 15px; padding-left:12px; border-left:4px solid #3949ab; }
+  h3 { font-size:1.15em; color:#3949ab; margin:20px 0 10px; }
+  .section { background:#fff; padding:25px 30px; margin-bottom:24px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+  .section ul { padding-left:20px; }
+  .section li { margin:6px 0; }
+  .highlight { background:#e8eaf6; padding:2px 6px; border-radius:3px; font-weight:600; }
+  .key-point { background:#fff3e0; border-left:3px solid #ff9800; padding:8px 14px; margin:10px 0; }
+  table { width:100%; border-collapse:collapse; margin:10px 0; }
+  th { background:#e8eaf6; padding:8px; text-align:left; border:1px solid #c5cae9; }
+  td { padding:8px; border:1px solid #e0e0e0; }
+  tr:nth-child(even) td { background:#fafafa; }
+  .card { background:#fff; border:1px solid #e0e0e0; border-radius:8px; padding:18px 22px; margin:14px 0; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+  .card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:4px; }
+  .q-num { font-weight:700; color:#1a237e; min-width:36px; }
+  .q-text { flex:1; }
+  .q-type { font-size:0.8em; color:#888; background:#f0f0f0; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+  .options { margin:10px 0 0 36px; }
+  .opt { display:block; padding:8px 12px; margin:3px 0; border:1.5px solid #e0e0e0; border-radius:6px; cursor:pointer; transition:all 0.15s; background:#fff; }
+  .opt:hover:not(.selected) { border-color:#7986cb; background:#f5f6ff; }
+  .opt.selected { pointer-events:none; }
+  .opt.correct-opt { border-color:#4caf50!important; background:#e8f5e9!important; }
+  .opt.wrong-opt { border-color:#f44336!important; background:#ffebee!important; }
+  .opt .opt-letter { font-weight:700; color:#3949ab; margin-right:6px; }
+  .opt .opt-icon { float:right; font-size:1.1em; }
+  .reveal-btn { display:inline-block; background:#3949ab; color:#fff; border:none; padding:8px 24px; border-radius:4px; cursor:pointer; font-size:0.95em; margin-top:8px; transition:background 0.2s; }
+  .reveal-btn:hover { background:#283593; }
+  .reveal-btn.done { display:none; }
+  .answer-panel { display:none; margin-top:12px; padding:14px 18px; background:#f3f5f9; border-radius:6px; border-left:3px solid #4caf50; }
+  .answer-panel.show { display:block; }
+  .correct { color:#2e7d32; font-weight:700; }
+  .explanation { margin-top:8px; color:#555; font-size:0.95em; }
+  .mnemonic { background:#e8f5e9; padding:10px 16px; border-radius:6px; margin:10px 0; border:1px dashed #66bb6a; }
+  @media print {
+    body { background:#fff; padding:0; }
+    .section { box-shadow:none; break-inside:avoid; }
+    .answer-panel { display:block!important; }
+    .opt { pointer-events:none; }
+    .reveal-btn { display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>第一章：数据挖掘与大数据简介</h1>
+<h2 style="text-align:center;color:#666;font-size:1em;border:none;padding:0;margin-top:-20px;">大数据4V特征 · 数据挖掘任务 · KDD知识发现过程</h2>
+
+<div class="section">
+<h2>核心知识点总结</h2>
+
+<h3>一、基本概念</h3>
+<ul>
+  <li><span class="highlight">大数据</span>：无法在 <b>一定时间内用常规软件工具</b> 对其内容进行 <b>抓取、管理、处理</b> 的数据集合。需要更新处理模式才能适应海量、高增长率和多样化的信息资产。</li>
+  <li><span class="highlight">数据挖掘 (DM)</span>：从<b>大量</b>数据中挖掘那些 <b>令人感兴趣的、有用的、隐含的、先前未知的、可能有用的模式或知识</b>。核心是"从大量数据中挖掘令人感兴趣的模式或知识"。</li>
+</ul>
+
+<h3>二、大数据的4V特征</h3>
+<table>
+  <tr><th>特征</th><th>英文</th><th>含义</th></tr>
+  <tr><td><b>数据量大</b></td><td>Volume</td><td>数据规模巨大，TB/PB级别</td></tr>
+  <tr><td><b>多样性</b></td><td>Variety</td><td>数据类型多样，结构化、半结构化、非结构化数据</td></tr>
+  <tr><td><b>价值密度低</b></td><td>Value</td><td>大量数据中有价值信息占比低</td></tr>
+  <tr><td><b>速度快</b></td><td>Velocity</td><td>数据产生和处理速度快，实时性要求高</td></tr>
+</table>
+
+<div class="mnemonic">
+  <b>记忆口诀（4V）：</b><br>
+  ✦ <b>大</b>(Volume) — 数据量大<br>
+  ✦ <b>多</b>(Variety) — 类型多样<br>
+  ✦ <b>低</b>(Value) — 价值密度低<br>
+  ✦ <b>快</b>(Velocity) — 处理速度快
+</div>
+
+<h3>三、数据挖掘的四大主要任务</h3>
+<ul>
+  <li><b>① 关联（规则）分析</b> — 发现数据项之间有趣的关联关系（如"购买啤酒的人往往也买尿布"）</li>
+  <li><b>② 聚类分析</b> — 将数据归为不同的类/簇，使得同类数据相似度最高、不同类差异最大</li>
+  <li><b>③ 分类、预测与回归</b> — 找出描述和区分数据类的模型，预测未知对象的类标签</li>
+  <li><b>④ 离群点分析</b> — 分析孤立而原本会被当作噪音丢弃的数据，如欺诈检测、入侵检测</li>
+</ul>
+
+<div class="key-point">
+  <b>关键区分：</b>分类 vs 聚类 — 分类是<b>有监督</b>的（已知类标签），聚类是<b>无监督</b>的（无类标签，自动形成类别）。
+</div>
+
+<h3>四、KDD 知识发现过程（7步）</h3>
+<table>
+  <tr><th>步骤</th><th>名称</th><th>说明</th></tr>
+  <tr><td>1</td><td>数据清理</td><td>消除噪声和删除不一致数据</td></tr>
+  <tr><td>2</td><td>数据集成</td><td>多种数据源可以组合在一起</td></tr>
+  <tr><td>3</td><td>数据选择</td><td>从数据库中提取与分析任务相关的数据</td></tr>
+  <tr style="background:#fff3e0;"><td><b>4</b></td><td><b>数据挖掘 ⭐</b></td><td><b>核心步骤，使用智能方法提取数据模式</b></td></tr>
+  <tr><td>5</td><td>模式评估</td><td>根据兴趣度度量，识别真正有趣的模式</td></tr>
+  <tr><td>6</td><td>知识表示</td><td>使用可视化和知识表示技术，向用户提供挖掘的知识</td></tr>
+</table>
+
+<div class="key-point">
+  <b>注意：</b>KDD过程 = 数据清理 → 数据集成 → 数据选择 → 数据变换 → <b>数据挖掘（核心）</b> → 模式评估 → 知识表示。共<b>7步</b>，其中数据挖掘是<b>核心步骤</b>！
+</div>
+
+<h3>五、数据挖掘的挑战</h3>
+<ul>
+  <li><b>数据容量</b> — 数据规模巨大，需要可伸缩的算法</li>
+  <li><b>数据实时性</b> — 数据流不断到达，要求实时处理</li>
+  <li><b>数据多样性</b> — 不同格式、不同来源的数据需要统一处理</li>
+  <li><b>数据不确定性</b> — 缺失值、噪声数据、不一致数据</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>互动自测</h2>
+
+<h3 style="color:#e65100;">—— 选择题 ——</h3>
+
+<div class="card" data-correct="B">
+  <div class="card-header"><span class="q-num">Q1</span><span class="q-text">大数据的4V特征不包括以下哪一项？（ ）</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> Volume（数据量大）<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> Validity（有效性）<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> Variety（多样性）<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> Value（价值密度低）<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ B</span></div>
+    <div class="explanation"><b>解析：</b>大数据的4V特征是 Volume（数据量大）、Variety（多样性）、Value（价值密度低）、Velocity（速度快）。Validity（有效性）不属于4V特征。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="C">
+  <div class="card-header"><span class="q-num">Q2</span><span class="q-text">数据挖掘是从（ ）数据中挖掘令人感兴趣的、有用的、隐含的模式或知识。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 少量<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 结构化<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 大量<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 干净的<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ C</span></div>
+    <div class="explanation"><b>解析：</b>数据挖掘的定义核心是"从<b>大量</b>的数据中挖掘……模式或知识"。关键词是"大量"。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="D">
+  <div class="card-header"><span class="q-num">Q3</span><span class="q-text">以下哪项不属于数据挖掘的四大主要任务？（ ）</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 关联规则分析<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 聚类分析<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 分类与预测<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 数据可视化<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ D</span></div>
+    <div class="explanation"><b>解析：</b>数据挖掘的四大主要任务是：①关联规则分析 ②聚类分析 ③分类/预测/回归 ④离群点分析。数据可视化是KDD过程中"知识表示"环节的手段，不是四大任务之一。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="A">
+  <div class="card-header"><span class="q-num">Q4</span><span class="q-text">在 KDD 知识发现过程中，核心步骤是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 数据挖掘<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 数据清理<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 数据集成<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 知识表示<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ A</span></div>
+    <div class="explanation"><b>解析：</b>KDD过程包括7步，其中<b>数据挖掘</b>是核心步骤，使用智能方法提取数据模式。其他步骤（清理、集成、选择、变换）是预处理环节，模式评估和知识表示是后处理环节。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="C">
+  <div class="card-header"><span class="q-num">Q5</span><span class="q-text">KDD 知识发现过程共包含几个步骤？（ ）</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 5步<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 6步<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 7步<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 8步<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ C</span></div>
+    <div class="explanation"><b>解析：</b>KDD过程共<b>7步</b>，依次为：数据清理 → 数据集成 → 数据选择 → 数据变换 → <b>数据挖掘</b> → 模式评估 → 知识表示。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="D">
+  <div class="card-header"><span class="q-num">Q6</span><span class="q-text">以下关于分类与聚类的描述，正确的是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 分类和聚类都是无监督学习方法<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 分类是无监督学习，聚类是有监督学习<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 分类和聚类都是有监督学习方法<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 分类是有监督学习，聚类是无监督学习<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ D</span></div>
+    <div class="explanation"><b>解析：</b><b>分类</b>是有监督学习，需要已知类标签的训练数据；<b>聚类</b>是无监督学习，不需要类标签，自动将数据分组。选项A、B、C的监督关系均描述错误。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="B">
+  <div class="card-header"><span class="q-num">Q7</span><span class="q-text">离群点分析在以下哪个应用场景中最有价值？（ ）</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 商品推荐系统<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 欺诈检测<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 天气预报<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 图像分类<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ B</span></div>
+    <div class="explanation"><b>解析：</b>离群点分析的核心应用是<b>欺诈检测</b>和入侵检测。异常数据（如异常交易、异常登录）往往意味着欺诈或入侵行为。商品推荐适合关联规则，天气预报适合回归，图像分类适合分类算法。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="A">
+  <div class="card-header"><span class="q-num">Q8</span><span class="q-text">数据挖掘面临的挑战中，"Different format of data, different sources"对应（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 数据多样性 (Variety)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 数据容量 (Volume)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 数据实时性 (Velocity)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 数据不确定性<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ A</span></div>
+    <div class="explanation"><b>解析：</b>"不同格式、不同来源的数据"对应4V中的<b>Variety（多样性）</b>。B对应数据规模大，C对应处理速度快，D对应缺失值和噪声数据。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="C">
+  <div class="card-header"><span class="q-num">Q9</span><span class="q-text">KDD过程中，消除噪声和删除不一致数据的步骤称为（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 数据集成<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 数据变换<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 数据清理<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 数据选择<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ C</span></div>
+    <div class="explanation"><b>解析：</b><b>数据清理</b>的任务就是消除噪声和删除不一致数据。数据集成是组合多数据源，数据变换是统一数据格式，数据选择是提取与任务相关的数据。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="B">
+  <div class="card-header"><span class="q-num">Q10</span><span class="q-text">以下哪个不是 KDD 过程中的步骤？（ ）</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 数据清理<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 数据采集<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 数据变换<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 模式评估<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ B</span></div>
+    <div class="explanation"><b>解析：</b>KDD的7步不包括"数据采集"。KDD假设数据已经存在于数据库中。7步为：数据清理 → 数据集成 → 数据选择 → 数据变换 → 数据挖掘 → 模式评估 → 知识表示。</div>
+  </div>
+</div>
+
+<h3 style="color:#e65100;margin-top:30px;">—— 填空题 ——</h3>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_1</span><span class="q-text">大数据的4V特征分别是：Volume（数据量大）、__________（多样性）、Value（价值密度低）、Velocity（速度快）。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">Variety</span></div>
+    <div class="explanation"><b>解析：</b>Variety 表示数据类型多样，包括结构化数据（表格）、半结构化数据（XML/JSON）和非结构化数据（文本/图像/视频）。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_2</span><span class="q-text">数据挖掘是从__________的数据中挖掘那些令人感兴趣的、有用的、隐含的、先前未知的模式或知识。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">大量</span></div>
+    <div class="explanation"><b>解析：</b>"从大量的数据中"是数据挖掘定义的开端和核心特征，区别于传统数据分析。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_3</span><span class="q-text">数据挖掘的四大主要任务是：关联规则分析、聚类分析、分类/预测/回归、__________。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">离群点分析（孤立点检测）</span></div>
+    <div class="explanation"><b>解析：</b>离群点分析发现那些显著不同于其他数据对象的点，在欺诈检测和入侵检测中价值极高。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_4</span><span class="q-text">KDD知识发现过程共7步，其中核心步骤是__________。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">数据挖掘</span></div>
+    <div class="explanation"><b>解析：</b>KDD的7步中，数据挖掘是核心步骤，负责使用智能方法提取数据模式。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_5</span><span class="q-text">KDD过程的完整7步是：数据清理 → 数据集成 → 数据选择 → __________ → 数据挖掘 → 模式评估 → 知识表示。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">数据变换</span></div>
+    <div class="explanation"><b>解析：</b>数据变换的作用是把数据变换和统一成适合挖掘的形式（如归一化、离散化）。</div>
+  </div>
+</div>
+
+
+<div style="text-align:center;margin:20px 0 40px;">
+  <a href="index.html" style="display:inline-block;background:#1a237e;color:#fff;text-decoration:none;padding:10px 36px;border-radius:6px;font-size:0.95em;transition:background 0.2s;" onmouseover="this.style.background='#283593'" onmouseout="this.style.background='#1a237e'">← 返回索引页</a>
+</div>
+</div>
+</div>
+
+<script>
+(function(){
+  document.querySelectorAll('.card').forEach(function(card){
+    var correct = card.getAttribute('data-correct');
+    if (!correct) return;
+    var opts = card.querySelectorAll('.opt');
+    var panel = card.querySelector('.answer-panel');
+    opts.forEach(function(opt){
+      opt.addEventListener('click', function(){
+        if (opt.classList.contains('selected')) return;
+        opts.forEach(function(o){ o.classList.add('selected'); });
+        var letter = opt.getAttribute('data-opt');
+        if (letter === correct) {
+          opt.classList.add('correct-opt');
+          opt.querySelector('.opt-icon').textContent = '\u2713';
+        } else {
+          opt.classList.add('wrong-opt');
+          opt.querySelector('.opt-icon').textContent = '\u2717';
+          var correctOpt = card.querySelector('.opt[data-opt="' + correct + '"]');
+          if (correctOpt) {
+            correctOpt.classList.add('correct-opt');
+            correctOpt.querySelector('.opt-icon').textContent = '\u2713';
+          }
+        }
+        if (panel) panel.classList.add('show');
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

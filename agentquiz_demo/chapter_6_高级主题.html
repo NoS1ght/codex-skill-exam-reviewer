@@ -1,0 +1,401 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第六章：高级主题</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif; line-height:1.8; color:#222; background:#f5f5f5; padding:20px; }
+  .container { max-width:900px; margin:0 auto; }
+  h1 { text-align:center; font-size:1.8em; color:#1a237e; margin:20px 0 30px; padding-bottom:12px; border-bottom:3px solid #1a237e; }
+  h2 { font-size:1.4em; color:#283593; margin:30px 0 15px; padding-left:12px; border-left:4px solid #3949ab; }
+  h3 { font-size:1.15em; color:#3949ab; margin:20px 0 10px; }
+  .section { background:#fff; padding:25px 30px; margin-bottom:24px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+  .section ul { padding-left:20px; }
+  .section li { margin:6px 0; }
+  .highlight { background:#e8eaf6; padding:2px 6px; border-radius:3px; font-weight:600; }
+  .key-point { background:#fff3e0; border-left:3px solid #ff9800; padding:8px 14px; margin:10px 0; }
+  table { width:100%; border-collapse:collapse; margin:10px 0; }
+  th { background:#e8eaf6; padding:8px; text-align:left; border:1px solid #c5cae9; }
+  td { padding:8px; border:1px solid #e0e0e0; }
+  tr:nth-child(even) td { background:#fafafa; }
+  .card { background:#fff; border:1px solid #e0e0e0; border-radius:8px; padding:18px 22px; margin:14px 0; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+  .card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:4px; }
+  .q-num { font-weight:700; color:#1a237e; min-width:36px; }
+  .q-text { flex:1; }
+  .q-type { font-size:0.8em; color:#888; background:#f0f0f0; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+  .options { margin:10px 0 0 36px; }
+  .opt { display:block; padding:8px 12px; margin:3px 0; border:1.5px solid #e0e0e0; border-radius:6px; cursor:pointer; transition:all 0.15s; background:#fff; }
+  .opt:hover:not(.selected) { border-color:#7986cb; background:#f5f6ff; }
+  .opt.selected { pointer-events:none; }
+  .opt.correct-opt { border-color:#4caf50!important; background:#e8f5e9!important; }
+  .opt.wrong-opt { border-color:#f44336!important; background:#ffebee!important; }
+  .opt .opt-letter { font-weight:700; color:#3949ab; margin-right:6px; }
+  .opt .opt-icon { float:right; font-size:1.1em; }
+  .reveal-btn { display:inline-block; background:#3949ab; color:#fff; border:none; padding:8px 24px; border-radius:4px; cursor:pointer; font-size:0.95em; margin-top:8px; transition:background 0.2s; }
+  .reveal-btn:hover { background:#283593; }
+  .reveal-btn.done { display:none; }
+  .answer-panel { display:none; margin-top:12px; padding:14px 18px; background:#f3f5f9; border-radius:6px; border-left:3px solid #4caf50; }
+  .answer-panel.show { display:block; }
+  .correct { color:#2e7d32; font-weight:700; }
+  .explanation { margin-top:8px; color:#555; font-size:0.95em; }
+  .mnemonic { background:#e8f5e9; padding:10px 16px; border-radius:6px; margin:10px 0; border:1px dashed #66bb6a; }
+  @media print {
+    body { background:#fff; padding:0; }
+    .section { box-shadow:none; break-inside:avoid; }
+    .answer-panel { display:block!important; }
+    .opt { pointer-events:none; }
+    .reveal-btn { display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>第六章：高级主题</h1>
+<h2 style="text-align:center;color:#666;font-size:1em;border:none;padding:0;margin-top:-20px;">最小哈希与LSH · 数据流概念漂移 · Hadoop/Spark/RDD</h2>
+
+<div class="section">
+<h2>核心知识点总结</h2>
+
+<h3>一、哈希技术 — 相似文档查找</h3>
+
+<h4>1. Shingling 算法（k-shingle）</h4>
+<ul>
+  <li>一个文档的 <span class="highlight">k-shingle</span>（或 k-gram）是指<b>连续 k 个字符一起出现的序列</b></li>
+  <li>例：k=2, Doc1=abcab → 2-shingles = {ab, bc, ca}</li>
+  <li>两个文档的相似性 = 它们的 k-shingles 集合的<b>Jaccard 相似度</b></li>
+</ul>
+
+<div class="key-point">
+  <b>Jaccard 相似度：</b>sim(C₁, C₂) = a / (a+b+c)<br>
+  其中 a = 两者都为1的位数，b/c = 一1一0的位数
+</div>
+
+<h4>2. 最小哈希 (MinHashing) — 签名矩阵计算</h4>
+<div class="key-point">
+  <b>核心思想：</b>把每一列转换成更小的<b>签名矩阵</b>，使其能放入内存且保持相似性。<br>
+  <b>最小哈希定义：</b>首次出现1的行号。<br>
+  <b>性质：</b>理论上 sim(C₁,C₂) = Pr(h(C₁)=h(C₂))
+</div>
+
+<p><b>签名矩阵计算步骤：</b></p>
+<ol>
+  <li>用多个<b>随机哈希函数</b>（即行排列）对初始矩阵各行重新编号</li>
+  <li>对每一列，找到首次出现1的<b>新行号</b>，填入签名矩阵</li>
+  <li>重复多次（如3次）得到多行签名</li>
+</ol>
+
+<div class="mnemonic">
+  <b>最小哈希三步：</b><br>
+  ✦ ① 计算签名矩阵 → ② 通过签名找相似 → ③ 验证是否真相似（可选）<br>
+  ✦ 签名矩阵比原始矩阵小得多，可放入内存
+</div>
+
+<h4>3. LSH 局部敏感哈希</h4>
+<ul>
+  <li><b>原因：</b>一一比较所有文档对非常困难，需要快速匹配</li>
+  <li><b>思想：</b>将数据放入桶中，每个桶里的数据非常相似（不一一匹配）</li>
+  <li><b>方法：</b>将签名矩阵的列向量划分为 <b>b 个 bands</b>（块），每块哈希到桶中</li>
+  <li>如果两列相似性很高（>0.5），至少有一个 band 全部映射到同一个桶中</li>
+</ul>
+
+<h3>二、数据流挖掘与概念漂移</h3>
+
+<h4>数据流的特征</h4>
+<ul>
+  <li><b>持续依次到达</b>的对象，<b>无穷长</b></li>
+  <li>有<b>概念漂移</b>（模式随时间发生漂移）</li>
+  <li>挑战：<b>单程处理</b>、<b>内存限制</b>、<b>低时间复杂度</b></li>
+</ul>
+
+<h4>概念漂移</h4>
+<div class="key-point">
+  <b>概念漂移：</b>预测分析和机器学习中，模型试图预测的目标变量的<b>统计特性</b>随时间以<b>不可预见的方式改变</b>。即 <b>条件概率 P(Y|X) 发生变化</b>。
+</div>
+
+<h4>检测概念漂移的两种方法</h4>
+<table>
+  <tr><th>方法</th><th>原理</th><th>缺点</th></tr>
+  <tr><td><span class="highlight">基于分布</span></td><td>等时间窗口检测 P(C|X) 变化</td><td>窗口大小难定、漂移检测慢、虚假漂移</td></tr>
+  <tr><td><span class="highlight">基于错误率</span></td><td>错误率突然变大→概念漂移</td><td>对噪声敏感、难处理缓慢变化、依赖模型健壮性</td></tr>
+</table>
+
+<h4>数据流分类：快速决策树 (VFDT)</h4>
+<ul>
+  <li>动态构造决策树，利用小部分数据增量式构建</li>
+  <li>新数据满足划分条件时分裂节点</li>
+  <li>若错误率变多 → 发生概念漂移 → 替换旧节点</li>
+</ul>
+
+<h4>数据流聚类：微簇 (Micro-cluster)</h4>
+<div class="key-point">
+  <b>簇特征 CF = (N, LS, SS)</b><br>
+  N = 点的个数，LS = 横坐标之和，SS = 横坐标平方和<br>
+  ✦ 可计算中心（LS/N）和半径<br>
+  ✦ 支持<b>动态增量式计算</b>（有可加性、可减性）<br>
+  ✦ 为什么需要：数据连续不断进入，只需加新增点的数据
+</div>
+
+<h3>三、Hadoop / Spark 生态系统</h3>
+
+<h4>Hadoop</h4>
+<ul>
+  <li><b>定义</b>：软件框架，用于跨大型计算机集群对大型数据集进行<b>分布式处理</b> (TB/PB级别)</li>
+  <li><b>设计准则：</b>分而治之 + ①自动并行化 ②容错和自动恢复 ③给用户提供接口</li>
+</ul>
+
+<h4>Hadoop 核心组件</h4>
+<table>
+  <tr><th>组件</th><th>功能</th><th>关键概念</th></tr>
+  <tr><td><b>HDFS</b></td><td>分布式文件系统（存储）</td><td>分块存储，<span class="highlight">NameNode</span>（元数据）+ <span class="highlight">DataNode</span>（实际数据），心跳机制，挂掉后重建</td></tr>
+  <tr><td><b>MapReduce</b></td><td>分布式计算框架</td><td>Map + Reduce 两次操作，大量IO</td></tr>
+  <tr><td><b>ZooKeeper</b></td><td>协调服务</td><td>集群管理和协调</td></tr>
+</table>
+
+<h4>Spark vs MapReduce</h4>
+<table>
+  <tr><th>MapReduce</th><th>Spark</th></tr>
+  <tr><td>适用于一次操作，多次操作不适用</td><td>统一引擎，支持多种应用</td></tr>
+  <tr><td>共享机制落后，大量时间IO</td><td>拥有 <b>RDD</b> 支持<b>内存计算</b></td></tr>
+</table>
+
+<h4>RDD（弹性分布式数据集）</h4>
+<div class="key-point">
+  <b>RDD：只读</b>，便于内存计算<br>
+  ✦ <b>Transformation（转换）</b>：从现有数据集创建新数据集，<b>懒惰执行</b>（不立即计算）<br>
+  ✦ <b>Action（动作）</b>：运行计算后向驱动程序<b>返回值</b>（触发实际计算）
+</div>
+</div>
+
+<div class="section">
+<h2>互动自测</h2>
+
+<h3 style="color:#e65100;">—— 选择题 ——</h3>
+
+<div class="card" data-correct="B">
+  <div class="card-header"><span class="q-num">Q1</span><span class="q-text">最小哈希 (MinHash) 的定义是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 最小行号的值<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 首次出现1的行号<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 最小列号的值<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 最后出现1的行号<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ B</span></div>
+    <div class="explanation"><b>解析：</b>最小哈希 = 在某个行排列下，<b>首次出现1的行号</b>。对每一列独立计算，用多个哈希函数（行排列）得到签名矩阵的多行。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="C">
+  <div class="card-header"><span class="q-num">Q2</span><span class="q-text">LSH 局部敏感哈希中，将签名矩阵列向量划分为 b 个 bands，其原理是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 每个band独立计算相似度<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> bands越多准确率越高<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 相似列至少有一个band全部映射到同一个桶<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> band划分越多速度越快<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ C</span></div>
+    <div class="explanation"><b>解析：</b>LSH核心原理：相似度较大的列，至少有一个band内的所有行哈希值相同→映射到同一个桶。如果相似性>0.5，高概率至少一个band全匹配。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="D">
+  <div class="card-header"><span class="q-num">Q3</span><span class="q-text">概念漂移 (Concept Drift) 指的是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 数据量的持续增长<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 数据类型的多样化<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 数据源的不可靠性<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 目标变量的统计特性随时间不可预见地改变<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ D</span></div>
+    <div class="explanation"><b>解析：</b>概念漂移 = <b>P(Y|X) 条件概率随时间改变</b>。例如用户购买习惯随时间变化。A是Volume，B是Variety。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="A">
+  <div class="card-header"><span class="q-num">Q4</span><span class="q-text">基于错误率检测概念漂移的优点和缺点是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 简单直观，但对噪声敏感<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 对噪声鲁棒，但计算量大<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 准确度高，但需要大量内存<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 速度快，但无法检测缓慢漂移<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ A</span></div>
+    <div class="explanation"><b>解析：</b>基于错误率的方法有三大缺点：①对<b>噪声敏感</b> ②对<b>缓慢变化</b>难以处理 ③取决于<b>学习模型健壮性</b>。A正确描述了其核心缺点。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="B">
+  <div class="card-header"><span class="q-num">Q5</span><span class="q-text">数据流聚类中，微簇的簇特征 CF 公式为（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> CF = (N, Mean, Variance)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> CF = (N, LS, SS) N点数/LS横坐标和/SS平方和<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> CF = (K, Center, Radius)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> CF = (Count, Min, Max)<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ B</span></div>
+    <div class="explanation"><b>解析：</b>CF = (N, LS, SS)。N=点数，LS=横坐标和，SS=横坐标平方和。具有<b>可加性</b>和<b>可减性</b>，支持动态增量式计算，每个新数据只需加到CF中。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="C">
+  <div class="card-header"><span class="q-num">Q6</span><span class="q-text">Hadoop 中负责存储数据元信息（哪一块在哪个机器）的组件是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> MapReduce<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> ZooKeeper<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> NameNode<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> DataNode<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ C</span></div>
+    <div class="explanation"><b>解析：</b><b>NameNode</b> 存储元数据（哪块数据在哪个机器），<b>DataNode</b> 存储实际数据。DataNode 有<b>心跳机制</b>（定时汇报），超时未汇报则视为宕机，自动重建。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="A">
+  <div class="card-header"><span class="q-num">Q7</span><span class="q-text">Spark 相比 MapReduce 的核心优势是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> RDD 支持内存计算，减少 IO 开销<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 不需要分布式集群<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 能处理更大规模的数据<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 不需要编程<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ A</span></div>
+    <div class="explanation"><b>解析：</b>Spark 核心优势：<b>RDD 支持内存计算</b>，避免 MapReduce 大量磁盘IO。MapReduce每次操作都要读写磁盘，多次操作效率低。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="D">
+  <div class="card-header"><span class="q-num">Q8</span><span class="q-text">RDD 的两种操作方式中，Transformation 的特点是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 立即计算并返回结果<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 只能对数据做过滤<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 一次使用后 RDD 即被销毁<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 懒惰执行，不立即计算<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ D</span></div>
+    <div class="explanation"><b>解析：</b><b>Transformation</b>（如map/filter/groupBy）是<b>懒惰的</b>，不立即计算，只记录操作链。直到遇到<b>Action</b>（如count/collect/save）才触发实际计算。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="B">
+  <div class="card-header"><span class="q-num">Q9</span><span class="q-text">Hadoop 的设计准则核心思想是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 单机高性能计算<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 分而治之，大量廉价机器并行计算<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 使用GPU加速计算<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 所有数据放入内存计算<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ B</span></div>
+    <div class="explanation"><b>解析：</b>Hadoop核心思想：<b>分而治之</b>，使用大量<b>廉价机器</b>并行计算，配合自动并行化、容错恢复和用户接口。B是Spark的特点（RDD内存计算），不是Hadoop的。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="C">
+  <div class="card-header"><span class="q-num">Q10</span><span class="q-text">Jaccard 相似度 sim(C₁, C₂) 的计算公式为（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> (a+c) / (a+b+c)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> (a+b) / (a+b+c)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> a / (a+b+c)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> b / (a+b+c)<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ C</span></div>
+    <div class="explanation"><b>解析：</b>Jaccard = a/(a+b+c)，其中 a=两者都为1的列数，b/c=一1一0的列数。分子是<b>共同为1</b>的数量，分母是至少有一个为1的总数。</div>
+  </div>
+</div>
+
+<h3 style="color:#e65100;margin-top:30px;">—— 填空题 ——</h3>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_1</span><span class="q-text">最小哈希 (MinHash) 的目的是把原始特征矩阵转换为更小的__________，使其能放入内存并进行相似度比较。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">签名矩阵 (Signature Matrix)</span></div>
+    <div class="explanation"><b>解析：</b>签名矩阵比原始矩阵小得多，但能保持原始矩阵的Jaccard相似度（理论上两者相等）。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_2</span><span class="q-text">数据流的四个主要挑战是：单程处理、内存限制、低时间复杂度、__________。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">概念漂移</span></div>
+    <div class="explanation"><b>解析：</b>数据流四大挑战：单程处理（不能回头）、内存限制（不能全存）、低时间复杂度（快速处理）、概念漂移（模式随时间改变）。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_3</span><span class="q-text">检测概念漂移的两种方法是：基于__________的方法和基于错误率的方法。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">分布</span></div>
+    <div class="explanation"><b>解析：</b>基于分布：在等时间窗口检测P(C|X)的变化。基于错误率：错误率突然变大即检测到漂移。各有优缺点。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_4</span><span class="q-text">Hadoop 核心两大组件是：HDFS（分布式存储）和__________（分布式计算）。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">MapReduce</span></div>
+    <div class="explanation"><b>解析：</b>HDFS负责存储（NameNode+DataNode），MapReduce负责计算（Map+Reduce）。ZooKeeper负责协调。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_5</span><span class="q-text">RDD操作中，__________是懒惰执行的（不立即计算），而 Action 触发实际计算并返回结果。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">Transformation</span></div>
+    <div class="explanation"><b>解析：</b>Transformation（map/filter等）只是记录操作，不计算。Action（count/collect/save等）才触发DAG执行，返回结果。</div>
+  </div>
+</div>
+
+
+<div style="text-align:center;margin:20px 0 40px;">
+  <a href="index.html" style="display:inline-block;background:#1a237e;color:#fff;text-decoration:none;padding:10px 36px;border-radius:6px;font-size:0.95em;transition:background 0.2s;" onmouseover="this.style.background='#283593'" onmouseout="this.style.background='#1a237e'">← 返回索引页</a>
+</div>
+</div>
+</div>
+
+<script>
+(function(){
+  document.querySelectorAll('.card').forEach(function(card){
+    var correct = card.getAttribute('data-correct');
+    if (!correct) return;
+    var opts = card.querySelectorAll('.opt');
+    var panel = card.querySelector('.answer-panel');
+    opts.forEach(function(opt){
+      opt.addEventListener('click', function(){
+        if (opt.classList.contains('selected')) return;
+        opts.forEach(function(o){ o.classList.add('selected'); });
+        var letter = opt.getAttribute('data-opt');
+        if (letter === correct) {
+          opt.classList.add('correct-opt');
+          opt.querySelector('.opt-icon').textContent = '\u2713';
+        } else {
+          opt.classList.add('wrong-opt');
+          opt.querySelector('.opt-icon').textContent = '\u2717';
+          var correctOpt = card.querySelector('.opt[data-opt="' + correct + '"]');
+          if (correctOpt) {
+            correctOpt.classList.add('correct-opt');
+            correctOpt.querySelector('.opt-icon').textContent = '\u2713';
+          }
+        }
+        if (panel) panel.classList.add('show');
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

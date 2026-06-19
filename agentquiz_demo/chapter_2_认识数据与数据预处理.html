@@ -1,0 +1,386 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第二章：认识数据与数据预处理</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif; line-height:1.8; color:#222; background:#f5f5f5; padding:20px; }
+  .container { max-width:900px; margin:0 auto; }
+  h1 { text-align:center; font-size:1.8em; color:#1a237e; margin:20px 0 30px; padding-bottom:12px; border-bottom:3px solid #1a237e; }
+  h2 { font-size:1.4em; color:#283593; margin:30px 0 15px; padding-left:12px; border-left:4px solid #3949ab; }
+  h3 { font-size:1.15em; color:#3949ab; margin:20px 0 10px; }
+  .section { background:#fff; padding:25px 30px; margin-bottom:24px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+  .section ul { padding-left:20px; }
+  .section li { margin:6px 0; }
+  .highlight { background:#e8eaf6; padding:2px 6px; border-radius:3px; font-weight:600; }
+  .key-point { background:#fff3e0; border-left:3px solid #ff9800; padding:8px 14px; margin:10px 0; }
+  table { width:100%; border-collapse:collapse; margin:10px 0; }
+  th { background:#e8eaf6; padding:8px; text-align:left; border:1px solid #c5cae9; }
+  td { padding:8px; border:1px solid #e0e0e0; }
+  tr:nth-child(even) td { background:#fafafa; }
+  .card { background:#fff; border:1px solid #e0e0e0; border-radius:8px; padding:18px 22px; margin:14px 0; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+  .card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:4px; }
+  .q-num { font-weight:700; color:#1a237e; min-width:36px; }
+  .q-text { flex:1; }
+  .q-type { font-size:0.8em; color:#888; background:#f0f0f0; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+  .options { margin:10px 0 0 36px; }
+  .opt { display:block; padding:8px 12px; margin:3px 0; border:1.5px solid #e0e0e0; border-radius:6px; cursor:pointer; transition:all 0.15s; background:#fff; }
+  .opt:hover:not(.selected) { border-color:#7986cb; background:#f5f6ff; }
+  .opt.selected { pointer-events:none; }
+  .opt.correct-opt { border-color:#4caf50!important; background:#e8f5e9!important; }
+  .opt.wrong-opt { border-color:#f44336!important; background:#ffebee!important; }
+  .opt .opt-letter { font-weight:700; color:#3949ab; margin-right:6px; }
+  .opt .opt-icon { float:right; font-size:1.1em; }
+  .reveal-btn { display:inline-block; background:#3949ab; color:#fff; border:none; padding:8px 24px; border-radius:4px; cursor:pointer; font-size:0.95em; margin-top:8px; transition:background 0.2s; }
+  .reveal-btn:hover { background:#283593; }
+  .reveal-btn.done { display:none; }
+  .answer-panel { display:none; margin-top:12px; padding:14px 18px; background:#f3f5f9; border-radius:6px; border-left:3px solid #4caf50; }
+  .answer-panel.show { display:block; }
+  .correct { color:#2e7d32; font-weight:700; }
+  .explanation { margin-top:8px; color:#555; font-size:0.95em; }
+  .mnemonic { background:#e8f5e9; padding:10px 16px; border-radius:6px; margin:10px 0; border:1px dashed #66bb6a; }
+  @media print {
+    body { background:#fff; padding:0; }
+    .section { box-shadow:none; break-inside:avoid; }
+    .answer-panel { display:block!important; }
+    .opt { pointer-events:none; }
+    .reveal-btn { display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>第二章：认识数据与数据预处理</h1>
+<h2 style="text-align:center;color:#666;font-size:1em;border:none;padding:0;margin-top:-20px;">属性类型 · 统计描述 · 相似性度量 · 数据预处理</h2>
+
+<div class="section">
+<h2>核心知识点总结</h2>
+
+<h3>一、属性类型</h3>
+<table>
+  <tr><th>大类</th><th>子类</th><th>特征</th><th>示例</th><th>主要用途</th></tr>
+  <tr><td rowspan="2"><b>分类型</b><br>(定性)</td><td><span class="highlight">标称型</span></td><td>只在有限目标集中取值，值之间无序</td><td>ID号、眼球颜色、邮政编码</td><td rowspan="2"><b>分类</b></td></tr>
+  <tr><td><span class="highlight">序数型</span></td><td>值之间有顺序关系，但差值无意义</td><td>军阶、GPA、{tall,medium,short}</td></tr>
+  <tr><td rowspan="2"><b>数值型</b><br>(定量)</td><td><span class="highlight">区间</span></td><td>差值有意义，但无绝对零点</td><td>日历日期、摄氏温度</td><td rowspan="2"><b>回归</b></td></tr>
+  <tr><td><span class="highlight">比率</span></td><td>有绝对零点，比值有意义</td><td>开氏温度、长度、计数</td></tr>
+</table>
+
+<div class="key-point">
+  <b>特殊：二元属性</b>是标称型的一种，只有两个状态（0/1、是/否）。<br>
+  ✦ <b>对称二元</b>：两个状态同等重要（如男/女）<br>
+  ✦ <b>非对称二元</b>：两个状态权重不同（如阳性/阴性）
+</div>
+
+<h3>二、数据的统计描述</h3>
+<table>
+  <tr><th>类别</th><th>度量</th><th>公式/定义</th></tr>
+  <tr><td rowspan="4"><b>中心趋势度量</b></td><td><b>均值</b> (Mean)</td><td>所有值之和 / 值个数</td></tr>
+  <tr><td><b>中位数</b> (Median)</td><td>排序后中间位置的值</td></tr>
+  <tr><td><b>众数</b> (Mode)</td><td>出现频率最高的值</td></tr>
+  <tr><td><b>中列数</b> (Midrange)</td><td>(max + min) / 2</td></tr>
+  <tr><td rowspan="4"><b>数据散布度量</b></td><td><b>极差</b> (Range)</td><td>max - min</td></tr>
+  <tr><td><b>四分位数</b></td><td>Q1 (25%), Q2/Median (50%), Q3 (75%)</td></tr>
+  <tr><td><b>四分位数极差</b> (IQR)</td><td>IQR = Q3 - Q1</td></tr>
+  <tr><td><b>方差 / 标准差</b></td><td>σ² = Σ(x-μ)²/N</td></tr>
+</table>
+
+<div class="key-point">
+  <b>经验关系（非对称单峰数据）：</b><br>
+  <b>均值 - 众数 ≈ 3 × (均值 - 中位数)</b> 即 mean-mode ≈ 3(mean-median)
+</div>
+
+<div class="mnemonic">
+  <b>记忆口诀：五数概括</b><br>
+  ✦ [<b>min</b>, Q1, <b>median</b>, Q3, <b>max</b>]<br>
+  ✦ 用五个数描述一个数据集的分布概况
+</div>
+
+<h3>三、相似性 / 相异性度量</h3>
+
+<h4>1. 标称属性</h4>
+<div class="key-point">
+  <b>不匹配率：d(i, j) = (p - m) / p</b><br>
+  其中 m = 取值匹配的变量数目，p = 变量总数。即：不同值数 / 总数。
+</div>
+
+<h4>2. 二元属性</h4>
+<table>
+  <tr><th></th><th>对象j: 1</th><th>对象j: 0</th></tr>
+  <tr><td>对象i: 1</td><td>q（都是1）</td><td>r（i为1，j为0）</td></tr>
+  <tr><td>对象i: 0</td><td>s（i为0，j为1）</td><td>t（都是0）</td></tr>
+</table>
+<ul>
+  <li><b>对称二元（简单匹配）：</b>d = (r+s) / (q+r+s+t)</li>
+  <li><b>非对称二元（Jaccard）：</b>d = (r+s) / (q+r+s) — 忽略 t（负匹配）</li>
+</ul>
+
+<h4>3. 数值属性 — 距离度量</h4>
+<table>
+  <tr><th>距离</th><th>公式</th><th>说明</th></tr>
+  <tr><td><span class="highlight">闵可夫斯基</span> (Minkowski)</td><td>d = [Σ|xᵢ - yᵢ|ᵖ]^(1/p)</td><td>通用形式，p=1为曼哈顿，p=2为欧氏</td></tr>
+  <tr><td><span class="highlight">曼哈顿距离</span></td><td>d = Σ|xᵢ - yᵢ|</td><td>一维绝对值之和（城市街区距离）</td></tr>
+  <tr><td><span class="highlight">欧氏距离</span></td><td>d = √[Σ(xᵢ - yᵢ)²]</td><td>二维开根号（直线距离）</td></tr>
+</table>
+
+<h4>4. 数据标准化方法</h4>
+<ul>
+  <li><span class="highlight">最大-最小法（Min-Max）</span>：v' = (v - min) / (max - min)，映射到 [0, 1]</li>
+  <li><span class="highlight">Z-Score 标准化</span>：v' = (v - μ) / σ，转为均值为0、标准差为1的分布</li>
+</ul>
+
+<h3>四、数据预处理的四个步骤</h3>
+<table>
+  <tr><th>步骤</th><th>任务</th><th>方法</th></tr>
+  <tr><td><b>1. 数据清理</b></td><td>处理缺失值、噪声数据</td><td>填补缺失值、光滑噪声、识别/删除离群点</td></tr>
+  <tr><td><b>2. 数据集成</b></td><td>合并多数据源、消除冗余</td><td>相关分析（数值型）、<b>卡方检验</b>（标称型）</td></tr>
+  <tr><td><b>3. 数据归约</b></td><td>减小数据量但保持完整性</td><td>采样、PCA主成分分析、<b>特征筛选（信息增益）</b></td></tr>
+  <tr><td><b>4. 数据变换</b></td><td>统一数据格式</td><td>最大-最小归一化、Z-Score标准化、离散化</td></tr>
+</table>
+
+<div class="key-point">
+  <b>信息增益公式：</b><br>
+  Gain(A) = Info(D) - Info_A(D)<br>
+  = 整体熵 - 按属性A划分后的条件熵<br>
+  信息增益越大，说明该属性的分类能力越强（不确定性减少越多）。
+</div>
+
+<div class="mnemonic">
+  <b>记忆口诀：数据预处理顺序</b><br>
+  ✦ <b>清</b>（清理）→ <b>集</b>（集成）→ <b>归</b>（归约）→ <b>变</b>（变换）<br>
+  ✦ 谐音："<b>请（清）集（集）归（归）变（变）</b>" — 请集合归变！
+</div>
+</div>
+
+<div class="section">
+<h2>互动自测</h2>
+
+<h3 style="color:#e65100;">—— 选择题 ——</h3>
+
+<div class="card" data-correct="B">
+  <div class="card-header"><span class="q-num">Q1</span><span class="q-text">以下哪种属性属于标称型属性？（ ）</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 温度（摄氏度）<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 邮政编码<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> GPA成绩<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 身高<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ B</span></div>
+    <div class="explanation"><b>解析：</b>邮政编码是标称型属性，取值只在有限集合中且无序。温度是区间数值型，GPA是序数型，身高是比率数值型。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="C">
+  <div class="card-header"><span class="q-num">Q2</span><span class="q-text">标称型目标变量主要用于（ ），数值型目标变量主要用于（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 回归；分类<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 聚类；关联<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 分类；回归<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 关联；聚类<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ C</span></div>
+    <div class="explanation"><b>解析：</b>标称型目标变量只在有限集合中取值（如真/假），用于<b>分类</b>；数值型目标变量从无限集合中取值（如0.555），用于<b>回归</b>。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="D">
+  <div class="card-header"><span class="q-num">Q3</span><span class="q-text">以下哪个不是中心趋势度量？（ ）</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 均值<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 中位数<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 众数<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 极差<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ D</span></div>
+    <div class="explanation"><b>解析：</b>极差属于<b>数据散布度量</b>，反映数据离散程度。均值、中位数、众数、中列数属于中心趋势度量，反映数据中心位置。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="A">
+  <div class="card-header"><span class="q-num">Q4</span><span class="q-text">对于非对称的单峰数据，均值、中位数、众数之间的关系为（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> mean - mode ≈ 3(mean - median)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> mean = median = mode<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> median - mode ≈ 2(mean - mode)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> mode - median ≈ mean + median<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ A</span></div>
+    <div class="explanation"><b>解析：</b>经验公式 <b>均值-众数 ≈ 3×(均值-中位数)</b>，即 mean-mode ≈ 3(mean-median)。B是正态分布的情况，D无意义。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="C">
+  <div class="card-header"><span class="q-num">Q5</span><span class="q-text">四分位数极差 IQR 的计算公式为（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> Q2 - Q1<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> Q3 - Q2<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> Q3 - Q1<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> max - min<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ C</span></div>
+    <div class="explanation"><b>解析：</b>IQR = Q3 - Q1，即第75百分位与第25百分位之差。D选项 max-min 是极差（Range），不同概念。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="B">
+  <div class="card-header"><span class="q-num">Q6</span><span class="q-text">计算标称属性数据的相似性时，采用的方法是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 欧氏距离<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 不匹配率 d = (p-m)/p<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 曼哈顿距离<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 余弦相似度<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ B</span></div>
+    <div class="explanation"><b>解析：</b>标称属性是类别变量，不能直接计算数值距离，只能用<b>不匹配率</b>：不同值的数量/总变量数。欧氏和曼哈顿距离用于数值属性。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="A">
+  <div class="card-header"><span class="q-num">Q7</span><span class="q-text">对于非对称二元属性，计算相异性时一般（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 忽略 t（负匹配），d = (r+s)/(q+r+s)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 包含 t，d = (r+s)/(q+r+s+t)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 只计算 q/(q+r+s)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 使用欧氏距离<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ A</span></div>
+    <div class="explanation"><b>解析：</b>非对称二元属性中两个状态的权重不同（如阳性/阴性），因此忽略两个都为0（t）的情况，使用Jaccard系数：<b>d = (r+s)/(q+r+s)</b>。B是简单匹配，用于对称二元。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="D">
+  <div class="card-header"><span class="q-num">Q8</span><span class="q-text">以下哪种数据标准化方法将数据映射到均值为0、标准差为1的分布？（ ）</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 最大-最小法 (Min-Max)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 小数定标法<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 等宽离散化<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> Z-Score 标准化<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ D</span></div>
+    <div class="explanation"><b>解析：</b><b>Z-Score</b> 标准化公式为 v'=(v-μ)/σ，结果均值为0、标准差为1。Min-Max映射到[0,1]区间，不同方法效果不同。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="C">
+  <div class="card-header"><span class="q-num">Q9</span><span class="q-text">数据预处理中，使用卡方检验主要用于（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 数据清理<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 数据变换<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 数据集成中的冗余分析（标称数据）<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 数据归约中的采样<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ C</span></div>
+    <div class="explanation"><b>解析：</b>数据集成时需要检测冗余属性。对于<b>标称数据</b>用<b>卡方检验</b>，对于<b>数值数据</b>用相关分析。清理用填补/光滑，变换用归一化，归约用PCA/采样。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="B">
+  <div class="card-header"><span class="q-num">Q10</span><span class="q-text">五数概括包含的五个数值是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 均值、中位数、众数、极差、方差<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> min, Q1, median, Q3, max<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> Q1, Q2, Q3, IQR, Range<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> min, mean, median, mode, max<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ B</span></div>
+    <div class="explanation"><b>解析：</b>五数概括 = [<b>min, Q1, median, Q3, max</b>]，即最小值、第一四分位数、中位数、第三四分位数、最大值。这五个数可以通过盒图直观展示。</div>
+  </div>
+</div>
+
+<h3 style="color:#e65100;margin-top:30px;">—— 填空题 ——</h3>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_1</span><span class="q-text">属性类型分为两大类别：分类型（包括标称型和序数型）和__________（包括区间和比率）。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">数值型</span></div>
+    <div class="explanation"><b>解析：</b>分类型用于分类任务，数值型用于回归分析。区间属性差值有意义但无绝对零（如摄氏温度），比率属性有绝对零（如开氏温度、长度）。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_2</span><span class="q-text">闵可夫斯基距离中，当 p=1 时为__________距离，当 p=2 时为欧氏距离。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">曼哈顿</span></div>
+    <div class="explanation"><b>解析：</b>p=1：曼哈顿距离 = Σ|xᵢ-yᵢ|（绝对值之和）；p=2：欧氏距离 = √Σ(xᵢ-yᵢ)²。p→∞时为切比雪夫距离。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_3</span><span class="q-text">数据预处理的四个步骤依次是：数据清理 → 数据集成 → __________ → 数据变换。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">数据归约</span></div>
+    <div class="explanation"><b>解析：</b>顺序：清→集→归→变。数据归约通过采样、PCA、特征筛选等方式减少数据量但保持完整性。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_4</span><span class="q-text">中列数的计算公式为 __________。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">(max + min) / 2</span></div>
+    <div class="explanation"><b>解析：</b>中列数 = (最大值 + 最小值) / 2，是中心趋势度量的一种，但容易受极端值影响。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_5</span><span class="q-text">信息增益 = 整体熵 - __________。信息增益越大，说明该属性的分类能力越强。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">条件熵（按属性划分后的熵）</span></div>
+    <div class="explanation"><b>解析：</b>Gain(A) = Info(D) - Info_A(D)。条件熵越小，说明在该条件下不确定性越低，信息增益越大。</div>
+  </div>
+</div>
+
+
+<div style="text-align:center;margin:20px 0 40px;">
+  <a href="index.html" style="display:inline-block;background:#1a237e;color:#fff;text-decoration:none;padding:10px 36px;border-radius:6px;font-size:0.95em;transition:background 0.2s;" onmouseover="this.style.background='#283593'" onmouseout="this.style.background='#1a237e'">← 返回索引页</a>
+</div>
+</div>
+</div>
+
+<script>
+(function(){
+  document.querySelectorAll('.card').forEach(function(card){
+    var correct = card.getAttribute('data-correct');
+    if (!correct) return;
+    var opts = card.querySelectorAll('.opt');
+    var panel = card.querySelector('.answer-panel');
+    opts.forEach(function(opt){
+      opt.addEventListener('click', function(){
+        if (opt.classList.contains('selected')) return;
+        opts.forEach(function(o){ o.classList.add('selected'); });
+        var letter = opt.getAttribute('data-opt');
+        if (letter === correct) {
+          opt.classList.add('correct-opt');
+          opt.querySelector('.opt-icon').textContent = '\u2713';
+        } else {
+          opt.classList.add('wrong-opt');
+          opt.querySelector('.opt-icon').textContent = '\u2717';
+          var correctOpt = card.querySelector('.opt[data-opt="' + correct + '"]');
+          if (correctOpt) {
+            correctOpt.classList.add('correct-opt');
+            correctOpt.querySelector('.opt-icon').textContent = '\u2713';
+          }
+        }
+        if (panel) panel.classList.add('show');
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

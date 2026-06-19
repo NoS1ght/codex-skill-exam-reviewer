@@ -1,0 +1,357 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第三章：关联规则挖掘</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif; line-height:1.8; color:#222; background:#f5f5f5; padding:20px; }
+  .container { max-width:900px; margin:0 auto; }
+  h1 { text-align:center; font-size:1.8em; color:#1a237e; margin:20px 0 30px; padding-bottom:12px; border-bottom:3px solid #1a237e; }
+  h2 { font-size:1.4em; color:#283593; margin:30px 0 15px; padding-left:12px; border-left:4px solid #3949ab; }
+  h3 { font-size:1.15em; color:#3949ab; margin:20px 0 10px; }
+  .section { background:#fff; padding:25px 30px; margin-bottom:24px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+  .section ul { padding-left:20px; }
+  .section li { margin:6px 0; }
+  .highlight { background:#e8eaf6; padding:2px 6px; border-radius:3px; font-weight:600; }
+  .key-point { background:#fff3e0; border-left:3px solid #ff9800; padding:8px 14px; margin:10px 0; }
+  table { width:100%; border-collapse:collapse; margin:10px 0; }
+  th { background:#e8eaf6; padding:8px; text-align:left; border:1px solid #c5cae9; }
+  td { padding:8px; border:1px solid #e0e0e0; }
+  tr:nth-child(even) td { background:#fafafa; }
+  .card { background:#fff; border:1px solid #e0e0e0; border-radius:8px; padding:18px 22px; margin:14px 0; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+  .card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:4px; }
+  .q-num { font-weight:700; color:#1a237e; min-width:36px; }
+  .q-text { flex:1; }
+  .q-type { font-size:0.8em; color:#888; background:#f0f0f0; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+  .options { margin:10px 0 0 36px; }
+  .opt { display:block; padding:8px 12px; margin:3px 0; border:1.5px solid #e0e0e0; border-radius:6px; cursor:pointer; transition:all 0.15s; background:#fff; }
+  .opt:hover:not(.selected) { border-color:#7986cb; background:#f5f6ff; }
+  .opt.selected { pointer-events:none; }
+  .opt.correct-opt { border-color:#4caf50!important; background:#e8f5e9!important; }
+  .opt.wrong-opt { border-color:#f44336!important; background:#ffebee!important; }
+  .opt .opt-letter { font-weight:700; color:#3949ab; margin-right:6px; }
+  .opt .opt-icon { float:right; font-size:1.1em; }
+  .reveal-btn { display:inline-block; background:#3949ab; color:#fff; border:none; padding:8px 24px; border-radius:4px; cursor:pointer; font-size:0.95em; margin-top:8px; transition:background 0.2s; }
+  .reveal-btn:hover { background:#283593; }
+  .reveal-btn.done { display:none; }
+  .answer-panel { display:none; margin-top:12px; padding:14px 18px; background:#f3f5f9; border-radius:6px; border-left:3px solid #4caf50; }
+  .answer-panel.show { display:block; }
+  .correct { color:#2e7d32; font-weight:700; }
+  .explanation { margin-top:8px; color:#555; font-size:0.95em; }
+  .mnemonic { background:#e8f5e9; padding:10px 16px; border-radius:6px; margin:10px 0; border:1px dashed #66bb6a; }
+  @media print {
+    body { background:#fff; padding:0; }
+    .section { box-shadow:none; break-inside:avoid; }
+    .answer-panel { display:block!important; }
+    .opt { pointer-events:none; }
+    .reveal-btn { display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>第三章：关联规则挖掘</h1>
+<h2 style="text-align:center;color:#666;font-size:1em;border:none;padding:0;margin-top:-20px;">支持度/置信度 · Apriori算法 · FP-Growth · 模式评估</h2>
+
+<div class="section">
+<h2>核心知识点总结</h2>
+
+<h3>一、关联规则的基本概念</h3>
+<table>
+  <tr><th>概念</th><th>定义</th><th>公式</th></tr>
+  <tr><td><span class="highlight">支持度计数</span></td><td>包含项集的事务数</td><td>sc(X) = 包含X的事务数</td></tr>
+  <tr><td><span class="highlight">支持度</span></td><td>项集出现的频率</td><td>support(X) = sc(X) / 总事务数</td></tr>
+  <tr><td><span class="highlight">置信度</span></td><td>规则X→Y的条件概率</td><td>confidence(X→Y) = support(X∪Y) / support(X)</td></tr>
+</table>
+
+<div class="key-point">
+  <b>强关联规则：</b>同时满足<b>最小支持度阈值</b>和<b>最小置信度阈值</b>的规则。<br>
+  ✦ 支持度：筛掉出现太少的项集（无代表性）<br>
+  ✦ 置信度：筛掉关心不强的规则（可信度低）
+</div>
+
+<h3>二、挖掘关联规则的一般步骤</h3>
+<ol>
+  <li>找出所有<b>频繁项集</b>（满足最小支持度）</li>
+  <li>从频繁项集中产生<b>强关联规则</b>（满足最小置信度）</li>
+</ol>
+
+<h3>三、Apriori 算法</h3>
+<h4>两个核心性质（先验原理）</h4>
+<div class="key-point">
+  <b>性质1：</b>频繁项集的<b>所有非空子集</b>也必须是频繁的。<br>
+  <b>性质2（逆反）：</b>如果一个项集是<b>非频繁</b>的，则它的<b>所有超集</b>也一定是非频繁的。<br>
+  <b>→ 剪枝依据：</b>任何非频繁(k-1)-项集都不是频繁k-项集的子集。
+</div>
+
+<h4>Apriori 算法流程</h4>
+<ul>
+  <li>① 扫描数据库，统计每个项的计数，找出频繁 <b>1-项集 L₁</b></li>
+  <li>② 由 L₁ 产生候选 <b>2-项集 C₂</b>，扫描数据库计算支持度，筛选得 L₂</li>
+  <li>③ 由 L₂ 产生 C₃ → 扫描筛选 → L₃，以此类推</li>
+  <li>④ 重复直到没有新的频繁项集产生</li>
+  <li>⑤ 从频繁项集中<b>生成关联规则</b>，计算置信度并筛选</li>
+</ul>
+
+<div class="key-point">
+  <b>重要细节：连接步与剪枝步</b><br>
+  ✦ <b>连接步：</b>L_{k-1} 自连接产生 C_k（前 k-2 项相同才连接）<br>
+  ✦ <b>剪枝步：</b>利用先验性质，删除 C_k 中所有 (k-1)-子集不在 L_{k-1} 中的候选
+</div>
+
+<h3>四、FP-Growth 算法</h3>
+<ul>
+  <li><span class="highlight">优点</span>：不产生候选集，比Apriori快，只需两次扫描</li>
+  <li><span class="highlight">流程</span>：① 第一次扫描：找频繁1-项集 → ② 第二次扫描：构建 FP 树 → ③ 递归挖掘FP树</li>
+  <li>FP树：压缩的、前缀树结构，存储频繁模式的完整信息</li>
+</ul>
+
+<h3>五、关联模式的评估</h3>
+<table>
+  <tr><th>度量</th><th>含义</th><th>公式</th></tr>
+  <tr><td><b>支持度</b></td><td>规则覆盖的事务比例</td><td>P(X∪Y)</td></tr>
+  <tr><td><b>置信度</b></td><td>规则的可靠性</td><td>P(Y|X)</td></tr>
+  <tr><td><b>提升度</b></td><td>规则的相关性（>1正相关，&lt;1负相关，=1独立）</td><td>P(X∪Y)/(P(X)P(Y))</td></tr>
+</table>
+
+<div class="mnemonic">
+  <b>记忆口诀：Apriori 核心思想</b><br>
+  ✦ <b>子集频繁</b>（频繁→子集也频繁）<br>
+  ✦ <b>超集不频繁</b>（不频繁→超集也不频繁）<br>
+  ✦ <b>层层递进</b>：k-项集 → 候选(k+1)-项集 → 筛选 → …
+</div>
+</div>
+
+<div class="section">
+<h2>互动自测</h2>
+
+<h3 style="color:#e65100;">—— 选择题 ——</h3>
+
+<div class="card" data-correct="C">
+  <div class="card-header"><span class="q-num">Q1</span><span class="q-text">关联规则 X→Y 的置信度计算公式为（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> support(X∪Y) / 总事务数<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> support(Y) / support(X)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> support(X∪Y) / support(X)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> support(X∪Y) × support(X)<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ C</span></div>
+    <div class="explanation"><b>解析：</b>置信度 = P(Y|X) = P(X∪Y) / P(X) = support(X∪Y)/support(X)。A是支持度的公式，B和D不成立。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="B">
+  <div class="card-header"><span class="q-num">Q2</span><span class="q-text">Apriori 算法的先验性质表明：如果某 k-项集是频繁的，则它的所有 (k-1)-子集（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 一定是非频繁的<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 一定是频繁的<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 不一定是频繁的<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 与频繁性无关<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ B</span></div>
+    <div class="explanation"><b>解析：</b>先验原理：频繁项集的<b>所有非空子集也必须是频繁的</b>。逆否命题：非频繁项集的超集也一定非频繁（用于剪枝）。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="D">
+  <div class="card-header"><span class="q-num">Q3</span><span class="q-text">在挖掘关联规则时，支持度阈值的作用是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 保证规则的可靠性<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 保证规则的相关性<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 保证规则的可解释性<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 筛掉出现比较少、没有代表性的项集<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ D</span></div>
+    <div class="explanation"><b>解析：</b>支持度阈值用于过滤掉出现频率低、无代表性的项集。置信度阈值（如>0.7）用于确保规则可靠性。相关性由提升度等度量评估。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="A">
+  <div class="card-header"><span class="q-num">Q4</span><span class="q-text">FP-Growth 算法相比于 Apriori 算法的主要优势是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 不产生候选集，只需两次扫描<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 能处理连续属性<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 能找到更多频繁项集<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 不需要最小支持度参数<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ A</span></div>
+    <div class="explanation"><b>解析：</b>FP-Growth 的核心优势是<b>不产生候选集</b>且只需<b>两次扫描</b>数据库，速度比Apriori快得多。它同样需要最小支持度参数，处理的是离散属性。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="C">
+  <div class="card-header"><span class="q-num">Q5</span><span class="q-text">Apriori 算法中，L₂ 自连接生成 C₃ 时，要求两个频繁2-项集（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 所有项都相同<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 至少有一个相同项<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 前 k-2=1 项相同<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 最后一个项相同<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ C</span></div>
+    <div class="explanation"><b>解析：</b>自连接规则：L_{k-1} 中的两个项集，若它们的前 k-2 项相同，则可以连接产生 C_k 候选。对于 L₂ 自连接生成 C₃，要求前 1 项相同。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="B">
+  <div class="card-header"><span class="q-num">Q6</span><span class="q-text">如果关联规则 X→Y 的提升度 lift(X→Y) = 1，则说明（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> X 和 Y 正相关<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> X 和 Y 相互独立<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> X 和 Y 负相关<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 规则是强关联的<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ B</span></div>
+    <div class="explanation"><b>解析：</b>提升度＞1为正相关，＜1为负相关，<b>=1表示独立</b>（X发生不影响Y发生的概率）。独立时不应作为关联规则。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="D">
+  <div class="card-header"><span class="q-num">Q7</span><span class="q-text">支持度计数 support_count({Milk, Bread, Diaper}) = 2，总事务数为5，则该规则的支持度为（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 1/5<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 2/3<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 0.5<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 2/5<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ D</span></div>
+    <div class="explanation"><b>解析：</b>支持度 = 支持度计数 / 总事务数 = 2/5 = 0.4。注意区分支持度计数（绝对次数）和支持度（比例）。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="A">
+  <div class="card-header"><span class="q-num">Q8</span><span class="q-text">Apriori 算法中"剪枝步"的作用是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 利用先验性质删除不可能频繁的候选项集<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 合并相似的频繁项集<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 减少数据库扫描次数<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 优化内存使用<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ A</span></div>
+    <div class="explanation"><b>解析：</b>剪枝步利用先验性质：候选k-项集的任何(k-1)-子集若不在L_{k-1}中，则该候选也不可能是频繁的，直接删除。这减少了不必要的支持度计算。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="C">
+  <div class="card-header"><span class="q-num">Q9</span><span class="q-text">关联规则挖掘的一般步骤中，第一步是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 生成强关联规则<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 计算置信度<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 找出所有频繁项集<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 扫描数据库<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ C</span></div>
+    <div class="explanation"><b>解析：</b>关联规则挖掘分两步：①找出所有<b>频繁项集</b> ②从频繁项集中产生<b>强关联规则</b>。第一步用Apriori/FP-Growth等，第二步计算置信度并筛选。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="B">
+  <div class="card-header"><span class="q-num">Q10</span><span class="q-text">在FP树构建过程中，项按什么顺序排列？（ ）</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 按字母顺序<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 按支持度从高到低<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 按事务出现顺序<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 随机排序<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ B</span></div>
+    <div class="explanation"><b>解析：</b>FP树中项按<b>支持度从高到低</b>排列，高频项靠近根节点，这样可以最大化前缀共享，压缩数据。</div>
+  </div>
+</div>
+
+<h3 style="color:#e65100;margin-top:30px;">—— 填空题 ——</h3>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_1</span><span class="q-text">关联规则挖掘中，筛选频繁项集使用__________阈值，筛选强关联规则使用置信度阈值。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">支持度（最小支持度）</span></div>
+    <div class="explanation"><b>解析：</b>支持度用于筛选频繁项集（淘汰出现太少的），置信度用于筛选强关联规则（淘汰可信度低的）。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_2</span><span class="q-text">Apriori 算法的两个核心步骤是__________和剪枝步。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">连接步</span></div>
+    <div class="explanation"><b>解析：</b>连接步：L_{k-1}自连接生成C_k；剪枝步：利用先验性质删除不可能频繁的候选。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_3</span><span class="q-text">Apriori 先验原理的逆否命题：如果一个项集是非频繁的，则它的所有__________也一定是非频繁的。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">超集</span></div>
+    <div class="explanation"><b>解析：</b>逆否命题是非频繁项集的所有超集也非频繁，这是Apriori剪枝的数学依据。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_4</span><span class="q-text">FP-Growth 算法在构建 FP 树之前，需要先进行__________次数据库扫描找到频繁1-项集。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">一（1）</span></div>
+    <div class="explanation"><b>解析：</b>FP-Growth 共需两次扫描：第一次找频繁1-项集（确定项头表），第二次构建FP树。相比Apriori每层都扫描，大幅减少IO。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_5</span><span class="q-text">提升度 lift(X→Y) = P(X∪Y) / (__________)。当 lift > 1 时表示正相关。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">P(X) × P(Y)</span></div>
+    <div class="explanation"><b>解析：</b>提升度 = P(X∪Y)/(P(X)P(Y))。>1正相关，<1负相关，=1独立。即"实际共同发生概率/假设独立时应有的概率"。</div>
+  </div>
+</div>
+
+
+<div style="text-align:center;margin:20px 0 40px;">
+  <a href="index.html" style="display:inline-block;background:#1a237e;color:#fff;text-decoration:none;padding:10px 36px;border-radius:6px;font-size:0.95em;transition:background 0.2s;" onmouseover="this.style.background='#283593'" onmouseout="this.style.background='#1a237e'">← 返回索引页</a>
+</div>
+</div>
+</div>
+
+<script>
+(function(){
+  document.querySelectorAll('.card').forEach(function(card){
+    var correct = card.getAttribute('data-correct');
+    if (!correct) return;
+    var opts = card.querySelectorAll('.opt');
+    var panel = card.querySelector('.answer-panel');
+    opts.forEach(function(opt){
+      opt.addEventListener('click', function(){
+        if (opt.classList.contains('selected')) return;
+        opts.forEach(function(o){ o.classList.add('selected'); });
+        var letter = opt.getAttribute('data-opt');
+        if (letter === correct) {
+          opt.classList.add('correct-opt');
+          opt.querySelector('.opt-icon').textContent = '\u2713';
+        } else {
+          opt.classList.add('wrong-opt');
+          opt.querySelector('.opt-icon').textContent = '\u2717';
+          var correctOpt = card.querySelector('.opt[data-opt="' + correct + '"]');
+          if (correctOpt) {
+            correctOpt.classList.add('correct-opt');
+            correctOpt.querySelector('.opt-icon').textContent = '\u2713';
+          }
+        }
+        if (panel) panel.classList.add('show');
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,364 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第四章：分类与决策树</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif; line-height:1.8; color:#222; background:#f5f5f5; padding:20px; }
+  .container { max-width:900px; margin:0 auto; }
+  h1 { text-align:center; font-size:1.8em; color:#1a237e; margin:20px 0 30px; padding-bottom:12px; border-bottom:3px solid #1a237e; }
+  h2 { font-size:1.4em; color:#283593; margin:30px 0 15px; padding-left:12px; border-left:4px solid #3949ab; }
+  h3 { font-size:1.15em; color:#3949ab; margin:20px 0 10px; }
+  .section { background:#fff; padding:25px 30px; margin-bottom:24px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+  .section ul { padding-left:20px; }
+  .section li { margin:6px 0; }
+  .highlight { background:#e8eaf6; padding:2px 6px; border-radius:3px; font-weight:600; }
+  .key-point { background:#fff3e0; border-left:3px solid #ff9800; padding:8px 14px; margin:10px 0; }
+  table { width:100%; border-collapse:collapse; margin:10px 0; }
+  th { background:#e8eaf6; padding:8px; text-align:left; border:1px solid #c5cae9; }
+  td { padding:8px; border:1px solid #e0e0e0; }
+  tr:nth-child(even) td { background:#fafafa; }
+  .card { background:#fff; border:1px solid #e0e0e0; border-radius:8px; padding:18px 22px; margin:14px 0; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+  .card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:4px; }
+  .q-num { font-weight:700; color:#1a237e; min-width:36px; }
+  .q-text { flex:1; }
+  .q-type { font-size:0.8em; color:#888; background:#f0f0f0; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+  .options { margin:10px 0 0 36px; }
+  .opt { display:block; padding:8px 12px; margin:3px 0; border:1.5px solid #e0e0e0; border-radius:6px; cursor:pointer; transition:all 0.15s; background:#fff; }
+  .opt:hover:not(.selected) { border-color:#7986cb; background:#f5f6ff; }
+  .opt.selected { pointer-events:none; }
+  .opt.correct-opt { border-color:#4caf50!important; background:#e8f5e9!important; }
+  .opt.wrong-opt { border-color:#f44336!important; background:#ffebee!important; }
+  .opt .opt-letter { font-weight:700; color:#3949ab; margin-right:6px; }
+  .opt .opt-icon { float:right; font-size:1.1em; }
+  .reveal-btn { display:inline-block; background:#3949ab; color:#fff; border:none; padding:8px 24px; border-radius:4px; cursor:pointer; font-size:0.95em; margin-top:8px; transition:background 0.2s; }
+  .reveal-btn:hover { background:#283593; }
+  .reveal-btn.done { display:none; }
+  .answer-panel { display:none; margin-top:12px; padding:14px 18px; background:#f3f5f9; border-radius:6px; border-left:3px solid #4caf50; }
+  .answer-panel.show { display:block; }
+  .correct { color:#2e7d32; font-weight:700; }
+  .explanation { margin-top:8px; color:#555; font-size:0.95em; }
+  .mnemonic { background:#e8f5e9; padding:10px 16px; border-radius:6px; margin:10px 0; border:1px dashed #66bb6a; }
+  @media print {
+    body { background:#fff; padding:0; }
+    .section { box-shadow:none; break-inside:avoid; }
+    .answer-panel { display:block!important; }
+    .opt { pointer-events:none; }
+    .reveal-btn { display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>第四章：分类与决策树</h1>
+<h2 style="text-align:center;color:#666;font-size:1em;border:none;padding:0;margin-top:-20px;">决策树构造 · ID3/C4.5/CART · 信息增益计算 · 属性选择度量</h2>
+
+<div class="section">
+<h2>核心知识点总结</h2>
+
+<h3>一、分类基本概念</h3>
+<ul>
+  <li><span class="highlight">分类</span>：有监督学习，根据训练数据建立模型，预测未知对象的类标签。</li>
+  <li>分类是一个<b>两步过程</b>：①模型构建（训练阶段）→ ②模型使用（预测阶段）</li>
+</ul>
+
+<h3>二、决策树构造流程</h3>
+<ol>
+  <li>树以<b>单个节点</b>（根节点）开始，代表所有训练样本</li>
+  <li>如果样本都在同一个类，则该节点成为<b>树叶</b>，用该类标记</li>
+  <li>否则，选择<b>最有分类能力的属性</b>作为当前节点的分裂属性</li>
+  <li>根据该属性取值的不同，将数据集分为若干子集，每个取值形成一个分枝</li>
+  <li>对每个子集<b>递归重复</b>上述步骤</li>
+</ol>
+
+<div class="key-point">
+  <b>递归停止条件（满足其一即停止）：</b><br>
+  ① 给定节点的所有样本属于<b>同一类</b><br>
+  ② <b>没有剩余属性</b>可以用来进一步划分样本<br>
+  ③ 某一分枝没有满足该分类的样本，则以样本的<b>多数类</b>创建树叶<br>
+  ④ 一个属性出现在一个节点后，不必在其<b>任何后代</b>中再考虑
+</div>
+
+<h3>三、属性选择度量（三种经典算法）</h3>
+<table>
+  <tr><th>算法</th><th>度量</th><th>公式</th><th>特点</th></tr>
+  <tr><td><span class="highlight">ID3</span></td><td><b>信息增益</b> Gain</td><td>Gain(A) = Info(D) - Info_A(D)</td><td>选<b>最高</b>信息增益的属性；偏向多值属性</td></tr>
+  <tr><td><span class="highlight">C4.5</span></td><td><b>增益率</b> GainRatio</td><td>GainRatio = Gain(A) / SplitInfo(A)</td><td>规范化信息增益，克服偏向多值属性的问题</td></tr>
+  <tr><td><span class="highlight">CART</span></td><td><b>Gini 指数</b></td><td>Gini = 1 - Σpᵢ²</td><td>二叉树；选最小Gini的属性</td></tr>
+</table>
+
+<h3>四、信息增益详解（ID3，必考）</h3>
+
+<div class="key-point">
+  <b>步骤：</b><br>
+  <b>① 计算整体信息熵：</b>Info(D) = -Σ pᵢ × log₂(pᵢ)<br>
+  其中 pᵢ 为 D 中属于类 Cᵢ 的比例<br><br>
+  <b>② 按属性 A 划分后的条件熵：</b>Info_A(D) = Σ (|Dⱼ|/|D|) × Info(Dⱼ)<br>
+  其中 Dⱼ 为 A 取值 vⱼ 的子集<br><br>
+  <b>③ 信息增益：</b>Gain(A) = Info(D) - Info_A(D)<br><br>
+  <b>④ 选择：</b>信息增益<b>最大</b>的属性作为分裂属性
+</div>
+
+<div class="key-point">
+  <b>经典计算例题（以 age 为例）：</b><br>
+  数据集：14个样本，9个yes/5个no<br>
+  ① 整体熵 Info(D) = -(9/14)log₂(9/14) - (5/14)log₂(5/14) ≈ 0.940<br>
+  ② 按 age 划分：youth(5人:2yes+3no), middle_aged(4人:4yes+0no), senior(5人:3yes+2no)<br>
+  ③ Info_age(D) = (5/14)×0.971 + (4/14)×0 + (5/14)×0.971 ≈ 0.694<br>
+  ④ Gain(age) = 0.940 - 0.694 = <b>0.246</b>
+</div>
+
+<h3>五、增益率（C4.5）</h3>
+<ul>
+  <li>SplitInfo(A) = -Σ (|Dⱼ|/|D|) × log₂(|Dⱼ|/|D|) — 分裂信息（属性A自身的熵）</li>
+  <li>GainRatio(A) = Gain(A) / SplitInfo(A)</li>
+  <li>解决 ID3 偏向多值属性（如 ID号）的问题</li>
+</ul>
+
+<h3>六、Gini 指数（CART）</h3>
+<div class="key-point">
+  <b>Gini(D) = 1 - Σpᵢ²</b><br>
+  Gini 指数越小，数据集的"纯净度"越高。选择使得划分后<b>Gini指数最小</b>的属性。
+</div>
+
+<div class="mnemonic">
+  <b>记忆口诀：三种分裂算法</b><br>
+  ✦ <b>ID3</b> — 信息增益，<b>越大越好</b><br>
+  ✦ <b>C4.5</b> — 增益率，<b>规范化</b>，惩罚多值<br>
+  ✦ <b>CART</b> — Gini指数，<b>越小越好</b>，二叉树
+</div>
+</div>
+
+<div class="section">
+<h2>互动自测</h2>
+
+<h3 style="color:#e65100;">—— 选择题 ——</h3>
+
+<div class="card" data-correct="B">
+  <div class="card-header"><span class="q-num">Q1</span><span class="q-text">决策树构造中选择"最有分类能力的属性"时，ID3 算法使用的度量是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> Gini 指数<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 信息增益<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 增益率<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 支持度<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ B</span></div>
+    <div class="explanation"><b>解析：</b>ID3 用<b>信息增益</b>，C4.5用增益率，CART用Gini指数。支持度是关联规则的度量。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="C">
+  <div class="card-header"><span class="q-num">Q2</span><span class="q-text">信息增益的计算公式为（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> Gain = Info(D) + Info_A(D)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> Gain = Info_A(D) - Info(D)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> Gain = Info(D) - Info_A(D)<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> Gain = Info(D) / Info_A(D)<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ C</span></div>
+    <div class="explanation"><b>解析：</b>信息增益 = 整体熵 - 条件熵 = Info(D) - Info_A(D)。信息增益越大，说明该属性划分后不确定性减少越多，分类能力越强。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="A">
+  <div class="card-header"><span class="q-num">Q3</span><span class="q-text">C4.5 算法相对于 ID3 的主要改进是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 使用增益率克服信息增益偏向多值属性的问题<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 支持连续属性<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 支持回归任务<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 使用集成学习方法<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ A</span></div>
+    <div class="explanation"><b>解析：</b>C4.5 引入<b>增益率</b>来规范化信息增益。ID3 偏向多值属性（极端如ID号每个值一个样本则Info=0，增益最大），C4.5通过除以SplitInfo来惩罚多值。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="D">
+  <div class="card-header"><span class="q-num">Q4</span><span class="q-text">Gini 指数的取值范围和含义是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> [0,1]，越大越纯净<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> [-1,1]，绝对值越大越纯净<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> [0,∞)，越大越纯净<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> [0,0.5]或[0,1]，越小越纯净<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ D</span></div>
+    <div class="explanation"><b>解析：</b>Gini 指数 = 1 - Σpᵢ²，范围 [0, 1-1/n]（n为类别数）。Gini <b>越小</b>表示数据集<b>越纯净</b>（当所有样本属同一类时 Gini=0）。CART 选择划分后Gini最小的属性。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="B">
+  <div class="card-header"><span class="q-num">Q5</span><span class="q-text">决策树构造的递归停止条件不包括（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 给定节点的所有样本属于同一类<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 信息增益大于阈值<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 没有剩余属性可用来进一步划分<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 某一分枝没有满足该分支分类的样本<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ B</span></div>
+    <div class="explanation"><b>解析：</b>停止条件为：①样本同属一类 ②无剩余属性 ③空分枝（用多数类标记）。"信息增益大于阈值"是有的，但阈值是人为设定且不属于三种基本停止条件。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="C">
+  <div class="card-header"><span class="q-num">Q6</span><span class="q-text">ID3 算法的一个极端缺陷是：如果某个属性（如ID号）每个取值仅对应一个样本，则信息增益（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 为0<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 为负<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 达到最大（被优先选择）<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 无法计算<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ C</span></div>
+    <div class="explanation"><b>解析：</b>ID3的<b>多值偏向问题</b>：每个样本单独一类时条件熵为0，信息增益达到最大，ID3会优先选它为分裂属性。但ID号没有泛化能力。C4.5用增益率解决此问题。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="A">
+  <div class="card-header"><span class="q-num">Q7</span><span class="q-text">在决策树信息增益计算中，`Info_A(D)` 表示（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 按属性 A 划分后的条件信息熵<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 属性 A 自身的信息熵<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 数据集的整体信息熵<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 属性 A 的信息增益<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ A</span></div>
+    <div class="explanation"><b>解析：</b>Info_A(D) = Σ(|Dⱼ|/|D|)×Info(Dⱼ)，即按属性A划分后<b>各子集熵的加权平均</b>，也就是条件熵。整体熵是Info(D)，属性A自身熵是SplitInfo(A)。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="D">
+  <div class="card-header"><span class="q-num">Q8</span><span class="q-text">CART 算法生成的决策树是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 多叉树<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 三叉树<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> N叉树（与属性取值数相同）<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 二叉树<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ D</span></div>
+    <div class="explanation"><b>解析：</b>CART（分类与回归树）生成的是<b>二叉树</b>，每次分裂只产生两个分支。ID3和C4.5生成多叉树。CART既可用于分类也可用于回归。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="B">
+  <div class="card-header"><span class="q-num">Q9</span><span class="q-text">如果数据集有14个样本（9个yes/5个no），则整体信息熵 Info(D) 最接近（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 0.5<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 0.94<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 1.0<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 1.5<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ B</span></div>
+    <div class="explanation"><b>解析：</b>Info(D) = -(9/14)log₂(9/14)-(5/14)log₂(5/14) ≈ -(0.643)×(-0.637)-(0.357)×(-1.485) ≈ 0.409+0.530 = <b>0.939</b>。分布略偏但接近0.94。</div>
+  </div>
+</div>
+
+<div class="card" data-correct="C">
+  <div class="card-header"><span class="q-num">Q10</span><span class="q-text">增益率的计算公式中，SplitInfo(A) 的作用是（ ）。</span><span class="q-type">单选</span></div>
+  <div class="options">
+    <div class="opt" data-opt="A"><span class="opt-letter">A.</span> 增大信息增益的值<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="B"><span class="opt-letter">B.</span> 提高计算精度<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="C"><span class="opt-letter">C.</span> 对多值属性进行惩罚（规范化）<span class="opt-icon"></span></div>
+    <div class="opt" data-opt="D"><span class="opt-letter">D.</span> 加快计算速度<span class="opt-icon"></span></div>
+  </div>
+  <div class="answer-panel">
+    <div><span class="correct">✓ C</span></div>
+    <div class="explanation"><b>解析：</b>SplitInfo(A)是属性A自身的熵，取值越多的属性SplitInfo越大。GainRatio=Gain/SplitInfo，除以较大的SplitInfo实际上<b>惩罚</b>了多值属性，从而克服ID3的偏向问题。</div>
+  </div>
+</div>
+
+<h3 style="color:#e65100;margin-top:30px;">—— 填空题 ——</h3>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_1</span><span class="q-text">决策树的三种属性选择度量分别是：ID3 使用信息增益，C4.5 使用__________，CART 使用 Gini 指数。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">增益率（Gain Ratio）</span></div>
+    <div class="explanation"><b>解析：</b>GainRatio(A) = Gain(A) / SplitInfo(A)。ID3→信息增益，C4.5→增益率，CART→Gini指数。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_2</span><span class="q-text">分类是__________学习，需要已知类标签的训练数据；而聚类是无监督学习。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">有监督（监督）</span></div>
+    <div class="explanation"><b>解析：</b>分类需要带标签的训练数据，是典型的有监督学习。聚类无需标签，是无监督学习。这是两者的本质区别。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_3</span><span class="q-text">信息熵公式为 Info(D) = -Σ__________ × log₂(pᵢ)，其中 pᵢ 是类别 i 的比例。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">pᵢ</span></div>
+    <div class="explanation"><b>解析：</b>Info(D) = -Σ pᵢ·log₂(pᵢ)。信息熵度量数据的混乱程度/不确定性。均匀分布时最大，完全纯净时最小（=0）。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_4</span><span class="q-text">决策树递归停止的三个基本条件是：样本同属一类、__________、某一分枝没有满足该分类的样本。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">没有剩余属性可以用来进一步划分</span></div>
+    <div class="explanation"><b>解析：</b>三个停止条件：①样本同属一类 ②无剩余属性 ③空分枝（用多数类标记）。实际中也可设置最大深度、最小样本数等。</div>
+  </div>
+</div>
+
+<div class="card" data-type="fill">
+  <div class="card-header"><span class="q-num">FIB_5</span><span class="q-text">Gini 指数公式为 Gini(D) = 1 - Σ__________。Gini 越小，数据集越纯净。</span><span class="q-type">填空</span></div>
+  <button class="reveal-btn" onclick="var p=this.parentElement.querySelector('.answer-panel');p.classList.add('show');this.classList.add('done');">▶ 点击查看答案</button>
+  <div class="answer-panel">
+    <div><span class="correct">pᵢ²</span></div>
+    <div class="explanation"><b>解析：</b>Gini = 1 - Σpᵢ²。当所有样本同一类时 p=1, Gini=0；均匀分布时Gini最大。CART选择划分后Gini加权和最小的属性。</div>
+  </div>
+</div>
+
+
+<div style="text-align:center;margin:20px 0 40px;">
+  <a href="index.html" style="display:inline-block;background:#1a237e;color:#fff;text-decoration:none;padding:10px 36px;border-radius:6px;font-size:0.95em;transition:background 0.2s;" onmouseover="this.style.background='#283593'" onmouseout="this.style.background='#1a237e'">← 返回索引页</a>
+</div>
+</div>
+</div>
+
+<script>
+(function(){
+  document.querySelectorAll('.card').forEach(function(card){
+    var correct = card.getAttribute('data-correct');
+    if (!correct) return;
+    var opts = card.querySelectorAll('.opt');
+    var panel = card.querySelector('.answer-panel');
+    opts.forEach(function(opt){
+      opt.addEventListener('click', function(){
+        if (opt.classList.contains('selected')) return;
+        opts.forEach(function(o){ o.classList.add('selected'); });
+        var letter = opt.getAttribute('data-opt');
+        if (letter === correct) {
+          opt.classList.add('correct-opt');
+          opt.querySelector('.opt-icon').textContent = '\u2713';
+        } else {
+          opt.classList.add('wrong-opt');
+          opt.querySelector('.opt-icon').textContent = '\u2717';
+          var correctOpt = card.querySelector('.opt[data-opt="' + correct + '"]');
+          if (correctOpt) {
+            correctOpt.classList.add('correct-opt');
+            correctOpt.querySelector('.opt-icon').textContent = '\u2713';
+          }
+        }
+        if (panel) panel.classList.add('show');
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

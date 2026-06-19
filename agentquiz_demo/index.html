@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据挖掘与大数据分析 — 复习题库</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif; line-height:1.8; color:#222; background:#f5f5f5; padding:20px; }
+  .container { max-width:800px; margin:0 auto; }
+  h1 { text-align:center; font-size:2em; color:#1a237e; margin:30px 0 8px; }
+  .subtitle { text-align:center; color:#666; font-size:0.95em; margin-bottom:30px; }
+  .stats { display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin-bottom:36px; }
+  .stat-card { background:#fff; padding:16px 28px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.08); text-align:center; min-width:100px; }
+  .stat-card .num { font-size:2em; font-weight:700; color:#1a237e; }
+  .stat-card .label { font-size:0.85em; color:#888; margin-top:4px; }
+  .chapter-list { display:flex; flex-direction:column; gap:14px; }
+  .chapter-card { background:#fff; border-radius:10px; padding:20px 28px; box-shadow:0 2px 8px rgba(0,0,0,0.08); text-decoration:none; color:#222; display:block; transition:all 0.2s; border-left:5px solid #3949ab; }
+  .chapter-card:hover { transform:translateX(4px); box-shadow:0 4px 16px rgba(0,0,0,0.14); border-left-color:#1a237e; }
+  .chapter-card .ch-num { font-size:0.85em; color:#7986cb; font-weight:600; }
+  .chapter-card .ch-title { font-size:1.2em; font-weight:700; color:#1a237e; margin:2px 0 6px; }
+  .chapter-card .ch-desc { font-size:0.9em; color:#666; }
+  .chapter-card .ch-meta { font-size:0.8em; color:#aaa; margin-top:6px; }
+  .footer { text-align:center; color:#aaa; font-size:0.85em; margin-top:40px; padding-top:20px; border-top:1px solid #e0e0e0; }
+  .tips { background:#e8f5e9; border-radius:8px; padding:16px 22px; margin-bottom:30px; border-left:4px solid #4caf50; }
+  .tips h3 { color:#2e7d32; font-size:1.05em; margin-bottom:6px; }
+  .tips ul { padding-left:20px; color:#555; }
+  .tips li { margin:3px 0; }
+  @media print {
+    body { background:#fff; padding:0; }
+    .chapter-card { box-shadow:none; break-inside:avoid; }
+    .chapter-card:hover { transform:none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📊 数据挖掘与大数据分析</h1>
+  <p class="subtitle">2025年 · 期末复习题库 · 共6章</p>
+
+  <div class="stats">
+    <div class="stat-card"><div class="num">6</div><div class="label">章节</div></div>
+    <div class="stat-card"><div class="num">90</div><div class="label">总题数</div></div>
+    <div class="stat-card"><div class="num">60</div><div class="label">选择题</div></div>
+    <div class="stat-card"><div class="num">30</div><div class="label">填空题</div></div>
+  </div>
+
+  <div class="tips">
+    <h3>💡 使用建议</h3>
+    <ul>
+      <li>按章节顺序复习，先在"核心知识点总结"中回顾理论，再到"互动自测"中检验</li>
+      <li>所有题目点击即可查看答案和<span class="highlight">详细解析</span></li>
+      <li>支持打印（<b>Ctrl+P</b>），打印时自动显示所有答案</li>
+      <li>目标：每章题目<b>全做对</b> = 知识点<b>全记住</b></li>
+    </ul>
+  </div>
+
+  <div class="chapter-list">
+    <a class="chapter-card" href="chapter_1_数据挖掘与大数据简介.html">
+      <div class="ch-num">第一章</div>
+      <div class="ch-title">数据挖掘与大数据简介</div>
+      <div class="ch-desc">大数据4V特征 · 数据挖掘四大任务 · KDD知识发现七步过程 · 数据挖掘挑战</div>
+      <div class="ch-meta">10 选择题 + 5 填空题</div>
+    </a>
+
+    <a class="chapter-card" href="chapter_2_认识数据与数据预处理.html">
+      <div class="ch-num">第二章</div>
+      <div class="ch-title">认识数据与数据预处理</div>
+      <div class="ch-desc">属性类型（标称/序数/区间/比率）· 统计描述（均值/中位数/众数/IQR）· 相似性度量（欧氏/曼哈顿/不匹配率）· 数据预处理四步</div>
+      <div class="ch-meta">10 选择题 + 5 填空题</div>
+    </a>
+
+    <a class="chapter-card" href="chapter_3_关联规则挖掘.html">
+      <div class="ch-num">第三章</div>
+      <div class="ch-title">关联规则挖掘</div>
+      <div class="ch-desc">支持度/置信度 · Apriori算法（连接步+剪枝步）· 先验原理 · FP-Growth · 提升度</div>
+      <div class="ch-meta">10 选择题 + 5 填空题</div>
+    </a>
+
+    <a class="chapter-card" href="chapter_4_分类与决策树.html">
+      <div class="ch-num">第四章</div>
+      <div class="ch-title">分类与决策树</div>
+      <div class="ch-desc">决策树构造流程 · ID3信息增益 · C4.5增益率 · CART/Gini指数 · 熵与条件熵计算</div>
+      <div class="ch-meta">10 选择题 + 5 填空题</div>
+    </a>
+
+    <a class="chapter-card" href="chapter_5_聚类分析与离群点检测.html">
+      <div class="ch-num">第五章</div>
+      <div class="ch-title">聚类分析与离群点检测</div>
+      <div class="ch-desc">聚类四大类型 · K-means · DBSCAN（核心点/边界点/噪声点）· 离群点三大类型与检测方法</div>
+      <div class="ch-meta">10 选择题 + 5 填空题</div>
+    </a>
+
+    <a class="chapter-card" href="chapter_6_高级主题.html">
+      <div class="ch-num">第六章</div>
+      <div class="ch-title">高级主题</div>
+      <div class="ch-desc">MinHash签名矩阵 · LSH局部敏感哈希 · 概念漂移检测 · Hadoop(HDFS/MapReduce) · Spark(RDD/Transformation/Action)</div>
+      <div class="ch-meta">10 选择题 + 5 填空题</div>
+    </a>
+  </div>
+
+  <div class="footer">
+    基于课程资料生成 · 数据挖掘与大数据分析 · 电子科技大学
+  </div>
+</div>
+</body>
+</html>
